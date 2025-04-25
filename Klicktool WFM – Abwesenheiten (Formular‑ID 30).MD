@@ -1,301 +1,250 @@
-# 🟥 Abwesenheiten – Dokumentacija u Markdown formatu
-
-**Tehničke specifikacije**  
-- **Form ID**: `30`  
-- **Form Key**: `ieq67`  
-- **Naziv forme**: `🟥 Abwesenheiten`  
-- **Kreirano**: `2025-03-05 08:38:20`  
-- **Opcije**: `ajax_load: 1`, `ajax_submit: 1`, `js_validate: 1`, `save_draft: 1`  
-- **Auto-Email logika**: Script u `after_html` ažurira E-Mail Feld-ID **730** po obrascu `<first>.<last>@globl.contact`  
+📘 **Technische Dokumentation: FORMIDABLE XML-Datenexport – „🟥 Abwesenheiten“**  
 
 ---
 
-## 1. Sequence Diagram
-```mermaid
-sequenceDiagram
-    participant U as Benutzer
-    participant F as Form(ID 30)
-    participant S as Server
-    U->>F: GET /wfm-abwesenheit
-    F-->>U: HTML + JS
-    U->>F: input Daten + Submit
-    F->>S: AJAX POST /submit
-    S-->>F: 200 OK
-    F-->>U: Redirect na Erfolgseite
-```
+### ⚙️ Überblick  
+Dieses Dokument beschreibt die XML-Struktur des Formulars mit der ID **30** („🟥 Abwesenheiten“) aus dem System **Formidable Forms** (WordPress). Es fasst alle Felder, Typen und Optionen zusammen und ist gedacht für Analyse, Reproduktion und maschinelle Weiterverarbeitung. :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
 
-## 2. Class Diagram
-```mermaid
-classDiagram
-    class Form {
-        +int id
-        +string form_key
-        +string name
-        +map options
-    }
-    class Field {
-        +int id
-        +string field_key
-        +string name
-        +string type
-        +bool required
-    }
-    class EmailScript {
-        +int field_id
-        +string domain
-        +function updateEmail()
-    }
-    Form "1" --* "n" Field : sadrži
-    Form o-- EmailScript : koristi
-```
+---
 
-## 3. State Diagram
-```mermaid
-stateDiagram-v2
-    [*] --> Draft
-    Draft --> Published : admin objavi
-    Published --> Submitted : korisnik pošalje
-    Submitted --> [*]
-    Draft --> Deleted : admin izbriše
-```
+### 📝 Formulardetails  
+- **Formular-ID:** 30  
+- **Formular-Key:** `ieq67`  
+- **Name:** 🟥 Abwesenheiten  
+- **Erstellt am:** 2025-03-05 08:38:20  
+- **Status:** published  
+- **Export-Datum (PubDate):** Fri, 25 Apr 2025 00:47:45 +0000 :contentReference[oaicite:2]{index=2}&#8203;:contentReference[oaicite:3]{index=3}
 
-## 4. Entity-Relationship Diagram (ERD)
-```mermaid
-erDiagram
-    FORM ||--o{ FIELD : contains
-    FIELD }|..|{ OPTION : has
-    ENTRY }o--|| FORM : belongs_to
-    ENTRY ||--o{ ENTRY_META : has
-```
+---
 
-## 5. User Journey
-```mermaid
-userJourney
-    title Korisnik popunjava Abwesenheiten-formu
-    section Pristupanje
-      Otvoriti link: 5: U
-      Pregled forme: 4: U
-    section Popunjavanje
-      Unos imena: 4: U
-      Unos datuma: 3: U
-      Izbor razloga: 2: U
-    section Slanje
-      Klik Submit: 4: U
-      AJAX Submit: 3: S
-      Redirect: 2: U
-```
+### 📑 Feldübersicht  
 
-## 6. Gantt Chart
-```mermaid
-gantt
-    title Životni ciklus forme
-    dateFormat  YYYY-MM-DD
-    section Razvoj
-    Definicija schema   :done,    des1, 2025-03-01, 2d
-    Implementacija JS   :active,  dev1, 2025-03-03, 4d
-    Testiranje funkcija :         test1, after dev1, 3d
-    section Puštanje
-    Objavljivanje        :crit,   pub1, after test1, 1d
-```
+| 🏷️ Feldname                  | 🧾 Typ          | 📄 Beschreibung                        | 🔢 Mögliche Werte / Optionen                                                                                                                                                                      |
+|------------------------------|----------------|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Erstellt von                 | name           | Automatisch erzeugter Nutzername      | - Read-only; kombiniert `[first_name]` + `[last_name]` :contentReference[oaicite:4]{index=4}&#8203;:contentReference[oaicite:5]{index=5}                                                                                                                        |
+| Datum der Erfassung          | date           | Datum des Eintrags                     | Format `YYYY-MM-DD`; Standard: `[date]` :contentReference[oaicite:6]{index=6}&#8203;:contentReference[oaicite:7]{index=7}                                                                                                                                       |
+| Zeit der Erfassung           | time           | Uhrzeit des Eintrags                   | Format `HH:mm`; Standard: `[time]`; read-only :contentReference[oaicite:8]{index=8}&#8203;:contentReference[oaicite:9]{index=9}                                                                                                                                 |
+| **Mitarbeiterdaten**         | divider        | Abschnittsüberschrift                  | –                                                                                                                                                                                                |
+| Vorname des Mitarbeiters     | text           | Vorname des betroffenen Mitarbeiters    | Beliebiger String; placeholder „😀 Vorname“ :contentReference[oaicite:10]{index=10}&#8203;:contentReference[oaicite:11]{index=11}                                                                                                                                     |
+| Nachname des Mitarbeiters    | text           | Nachname des betroffenen Mitarbeiters   | Beliebiger String; placeholder „😀 Nachname“ :contentReference[oaicite:12]{index=12}&#8203;:contentReference[oaicite:13]{index=13}                                                                                                                                   |
+| E-Mail des Mitarbeiters      | text (calc)    | Automatisch berechnete E-Mail          | Berechnung: `[Vorname].[Nachname]@globl.contact` :contentReference[oaicite:14]{index=14}&#8203;:contentReference[oaicite:15]{index=15}                                                                                                                                 |
+| Pers.-Nr.                    | text           | Personalnummer                         | Freitext; placeholder „Pers.-Nr.“ :contentReference[oaicite:16]{index=16}&#8203;:contentReference[oaicite:17]{index=17}                                                                                                                                                |
+| Projekt wählen               | select         | Auswahl des Projekts                   | About You, Canyon, DG, Telekom, STRATO, TELEFONICA, SEC … :contentReference[oaicite:18]{index=18}&#8203;:contentReference[oaicite:19]{index=19}                                                                                                                       |
+| Abteilung                    | text           | Abteilung                              | Freitext; placeholder „🏢 Abteilung“ :contentReference[oaicite:20]{index=20}&#8203;:contentReference[oaicite:21]{index=21}                                                                                                                                             |
+| Abwesenheitsgrund            | select         | Art der Abwesenheit                    | 🚫 Unentschuldigte Abwesenheit, 🤔 Krankmeldung, 👶 Kinderkrankmeldung, 🌴 Urlaub, ✨ Sonderurlaub, 🎉 Feiertag, ♻️ Ausgleichstag :contentReference[oaicite:22]{index=22}&#8203;:contentReference[oaicite:23]{index=23}                                              |
+| Untertägig                   | checkbox       | Kennzeichnung für teil­tägige Abwesenheit | Anzeige nur, wenn Grund = Krankmeldung oder Kinderkrankmeldung :contentReference[oaicite:24]{index=24}&#8203;:contentReference[oaicite:25]{index=25}                                                                                                                    |
+| Ausfall von                  | time           | Beginn der Untertägigkeit              | Format `HH:mm`; nur sichtbar, wenn „Untertägig“ angekreuzt :contentReference[oaicite:26]{index=26}&#8203;:contentReference[oaicite:27]{index=27}                                                                                                                      |
+| Ausfall bis                  | time           | Ende der Untertägigkeit                | Format `HH:mm`; nur sichtbar, wenn „Untertägig“ angekreuzt :contentReference[oaicite:28]{index=28}&#8203;:contentReference[oaicite:29]{index=29}                                                                                                                      |
+| **Zusatzinformation**        | divider        | Abschnittsüberschrift                  | –                                                                                                                                                                                                |
+| Angenommen von               | text           | Freigabe durch (Name)                  | Freitext; placeholder „Angenommen von:“; optional :contentReference[oaicite:30]{index=30}&#8203;:contentReference[oaicite:31]{index=31}                                                                                                                                  |
+| Abwesenheit von              | text           | Abwesenheit von (Datum)                | Freitext; placeholder „Von“; Standard: `[date]` :contentReference[oaicite:32]{index=32}&#8203;:contentReference[oaicite:33]{index=33}                                                                                                                                 |
+| Abwesenheit bis              | text           | Abwesenheit bis (Datum)                | Freitext; placeholder „Bis“; Standard: `[date]` :contentReference[oaicite:34]{index=34}&#8203;:contentReference[oaicite:35]{index=35}                                                                                                                                 |
+| Bemerkungen / Anmerkungen    | textarea       | Freitext für zusätzliche Infos         | Max. 0 = unbegrenzt; placeholder „💡 Bemerkungen / Anmerkungen“ :contentReference[oaicite:36]{index=36}&#8203;:contentReference[oaicite:37]{index=37}                                                                                                                  |
+| Section Buttons (Ende)       | end_divider    | Schließt jeweiligen Abschnitt          | –                                                                                                                                                                                                |
+| 📤 E-Mails Senden            | submit         | Formular abschicken und E-Mails auslösen | –                                                                                                                                                                                                |
+| User ID                      | user_id        | Interner Nutzer-Identifier             | Automatisch gefüllt :contentReference[oaicite:38]{index=38}&#8203;:contentReference[oaicite:39]{index=39}  
 
-## 7. Pie Chart
-```mermaid
-pie title Raspodjela tipova polja
-    "Text": 5
-    "Select": 2
-    "Date/Time": 3
-    "Divider": 2
-    "Submit": 1
-    "User_ID": 1
-```
+---
 
-## 8. Quadrant Chart
-```mermaid
-quadrantChart
-    title Polja po važnosti i složenosti
-    x-axis Visoka složenost --> Niska složenost
-    y-axis Kritično --> Opcionalno
-    "Erstellt von": [8,8]
-    "E-Mail des Mitarbeiters": [9,7]
-    "Abwesenheitsgrund": [7,9]
-    "Bemerkungen": [3,4]
-```
+### 🧪 Technische Spezifikationen  
+- **Exportformat:** XML (UTF-8)  
+- **XML-Root:** `<channel>` → `<form>` → `<field>`  
+- **Metadaten:** `field_type`, `field_label`, `default_value`, `options`, `required` :contentReference[oaicite:40]{index=40}&#8203;:contentReference[oaicite:41]{index=41}  
+- **Plattform:** Formidable Forms (WordPress)  
+- **AJAX-Submit & JS-Validierung:** aktiviert  
+- **Entwurfsfunktion:** Speichern und Wiederaufnahme von Drafts aktiviert  
 
-## 9. Requirement Diagram
-```mermaid
-requirementDiagram
-    requirement FORM_REQ {
-        id: R1
-        text: "Ajax submit must work"
-    }
-    requirement EMAIL_AUTO {
-        id: R2
-        text: "Email auto-generation on input"
-    }
-    FORM_REQ --> EMAIL_AUTO
-```
+---
 
-## 10. Gitgraph (Commit grananje)
-```mermaid
-gitGraph
-    commit id:"init XML" tag:"v1.0"
-    branch develop
-    commit id:"add auto-email script"
-    commit id:"add date/time fields"
-    fork feature/user-journey
-      commit id:"draft user journey"
-    checkout develop
-    merge feature/user-journey
-    commit id:"final diagrams"
-```
+### 🗂️ Verarbeitungshinweise  
+1. **Reihenfolge:** Felder erscheinen in der `field_order`-Reihenfolge der XML.  
+2. **Sichtbarkeit:** Kontrollierte Anzeige über `hide_field` / `hide_opt`-Regeln.  
+3. **Pflichtfelder:** `<required>1</required>` markiert Pflichtfelder im XML.  
+4. **Abschnitte:** Divider-Felder (`divider` / `end_divider`) gruppieren logische Bereiche.  
 
-## 11. C4 Model
-### Context
-```mermaid
-C4Context
-    title C4 Context
-    Person(user, "Korisnik")
-    System(webApp, "Klicktool WFM")
-    user -> webApp : "Popunjava formu"
-```
-### Container
-```mermaid
-C4Container
-    title C4 Container
-    System_Boundary(s1, "WFM System") {
-      Container(web, "Web Frontend", "React + Ajax")
-      Container(api, "API Server", "PHP/WordPress")
-      ContainerDb(db, "MySQL DB", "Form data")
-    }
-    web -> api : REST/JSON
-    api -> db : Read/Write
-```
-### Component
-```mermaid
-C4Component
-    title C4 Component
-    Container(api, "API Server") {
-      Component(FormController, "FormController", "CRUD forme")
-      Component(EmailService, "EmailService", "Auto-email logic")
-    }
-    FormController -> EmailService : uses
-```
-### Code
-```mermaid
-C4Code
-    title C4 Code Snippet
-    snippet “email.js” {
-      function updateEmail(first, last) {
-        return `${first}.${last}@globl.contact`;
-      }
-    }
-```
+---
 
-## 12. Mindmap
-```mermaid
-mindmap
-  root((🟥 Abwesenheiten))
-    Specifikacije
-      IDs
-      Form Key
-      Opcije
-    Polja
-      Erstellt von
-      Datum
-      Email
+### 📎 Anhang & Empfehlungen  
+- Für automatisierte Auswertungen empfiehlt sich ein **JSON-Dump** der Felder:  
+  ```json
+  [
+    {
+      "id": 647,
+      "name": "Erstellt von",
+      "type": "name",
+      "required": true,
       …
-    Logika
-      Ajax Submit
-      Auto-Email
-    Integracije
-      DB
-      Redirect
-```
+    },
+    …
+  ]
 
-## 13. Timeline
-```mermaid
-timeline
-    title Ključni događaji
-    2025-03-05 : Forma kreirana
-    2025-03-06 : Prvi unosi
-    2025-03-07 : Objavljen WFM view
-    2025-04-09 : Privatni prikaz “Heute”
-    2025-04-23 : Nove tabele za “Woche” i “Ganze Zeit”
+{
+  "ajax_load": "1",
+  "ajax_submit": "1",
+  "js_validate": "1",
+  "save_draft": "1",
+  "logged_in_role": ["", "administrator", "_teamleiter"],
+  "open_editable_role": ["administrator", "_teamleiter"],
+  "draft_label": "💾 Entwurf speichern",
+  "draft_msg": "✅ Dein Entwurf wurde gespeichert.",
+  "submit_align": "center",
+  "success_action": "redirect",
+  "success_url": "https://klicktool.globl.contact/wfm-abwesenheit/",
+  "redirect_delay_time": "8",
+  "edit_msg": "Deine Antworten wurden erfolgreich eingereicht. Danke! 🎉✅"
+  // … (weitere Parameter wie custom_style, protect_files, etc.)
+}
 ```
+> **Hinweis:** vollständiges JSON-Objekt im XML-Tag `<options>` 
 
-## 14. Sankey Diagram
-```mermaid
-sankeyDiagram
-    A[User Input] 0.8 --> B[AJAX Submit]
-    B 0.8 --> C[Server Validation]
-    C 0.7 --> D[DB Write]
-    D 0.7 --> E[Success Redirect]
-    A[User Input] 0.2 --> F[Draft Save]
-    F --> G[Draft Storage]
-```
+---
 
-## 15. XY (Scatter/Line) Chart
-```mermaid
-scatterChart
-    title Field order vs Required
-    x-axis Redoslijed polja
-    y-axis Obavezno (1) / Neobavezno (0)
-    "Erstellt von": [2,1]
-    "Bemerkovanja": [32,0]
-    "Abwesenheitsgrund": [18,1]
-```
+## Architektur & Datenfluss
 
-## 16. Block Diagram
 ```mermaid
 flowchart TB
-    subgraph Frontend
-      UI[HTML+JS]
-    end
-    subgraph Backend
-      API[PHP/WordPress API]
-      Logic[Email & Validation]
-    end
-    DB[(MySQL)]
-    UI --> API
-    API --> Logic
-    Logic --> DB
-    Logic --> UI
+  subgraph Client
+    U[👤 Benutzer] -->|öffnet Formular| F[📄 Formular-ID 30]
+    F --> V{🛡️ JS-Validierung}
+    V -->|✅ OK| A[AJAX Submit]
+    V -->|❌ Fehler| E[⚠️ Fehlermeldung]
+  end
+
+  subgraph Server
+    A --> DB[(💾 MySQL `wp_frm_*` Tabellen)]
+    A --> Hooks[🔌 Actions & E-Mails]
+    Hooks --> Redirect[🔀 Redirect auf Success-URL]
+  end
 ```
 
-## 17. Packet Diagram
-```mermaid
-flowchart LR
-    Client -- "TCP Handshake" --> Server
-    Server -- "TLS Handshake" --> Client
-    Client -- "POST /submit HTTP/1.1" --> Server
-    Server -- "200 OK" --> Client
+---
+
+## Felddefinitionen
+
+### 1. System-Meta
+
+| ID  | Key    | Name                | Typ    | Pflicht | Default / Berechnung                           |
+|-----|--------|---------------------|--------|---------|-------------------------------------------------|
+| 647 | `9nx4z`| Erstellt von        | name   | Ja      | `{"first":"[first_name]","last":"[last_name]"}`  |
+| 645 | `p0jmn`| Datum der Erfassung | date   | Ja      | `[date]`                         |
+| 744 | `tzjug`| Zeit der Erfassung  | time   | Nein    | `[time]` (read-only)             |
+
+### 2. Mitarbeiterdaten-Abschnitt
+
+| ID  | Key     | Name                        | Typ      | Pflicht | Placeholder / Optionen                               |
+|-----|---------|-----------------------------|----------|---------|------------------------------------------------------|
+| 652 | `flpyx` | **Divider** „Mitarbeiterdaten“ | divider  | Nein    | –                                                    |
+| 742 | `nwksj` | Vorname des Mitarbeiters    | text     | Ja      | `😀 Vorname`                        |
+| 743 | `e40ji` | Nachname des Mitarbeiters   | text     | Ja      | `😀 Nachname`                       |
+| 740 | `jauwk` | E-Mail des Mitarbeiters     | text     | Ja      | Berechnung: `[Vorname].[Nachname]@globl.contact`  |
+| 666 | `r5loi` | Pers.-Nr.                   | text     | Ja      | `Pers.-Nr.`                        |
+| 726 | `nw3pz` | Projekt wählen              | select   | Ja      | z. B. „Telekom“, „SEC“, …            |
+| 667 | `itztd` | Abteilung                   | text     | Nein    | `🏢 Abteilung`                      |
+
+### 3. Abwesenheit
+
+| ID  | Key     | Name                  | Typ       | Pflicht | Optionen / Logik                                                                                         |
+|-----|---------|-----------------------|-----------|---------|----------------------------------------------------------------------------------------------------------|
+| 727 | `zl2m7` | Abwesenheitsgrund     | select    | Ja      | 🚫 Unentschuldigte | 🤔 Krankmeldung | 👶 Kinderkrankmeldung | 🌴 Urlaub | ✨ Sonderurlaub | 🎉 Feiertag | ♻️ Ausgleichstag  |
+| 739 | `891k2` | Untertägig            | checkbox  | Nein    | Nur sichtbar, wenn Grund = Krank- oder Kinderkrankmeldung (hide_field/hide_opt)  |
+| 745 | `spbw4` | Ausfall von           | time      | Nein    | Nur bei „Untertägig“; Bereich: 07:00–23:45                                          |
+| 746 | `1bpfo` | Ausfall bis           | time      | Nein    | Nur bei „Untertägig“; Bereich: 07:00–23:45                                          |
+
+### 4. Zusatzinformation
+
+| ID  | Key     | Name                         | Typ        | Pflicht | Details                                         |
+|-----|---------|------------------------------|------------|---------|-------------------------------------------------|
+| 653 | `igr4b` | **End Divider**              | end_divider| Nein    | –                                               |
+| 660 | `quz9q` | **Divider** „Zusatzinformation“ | divider    | Nein    | –                                               |
+| 682 | `5ab9b` | Angenommen von               | text       | Nein    | placeholder „Angenommen von:“; Jahr-Range –10/+10  |
+| 680 | `hxid2` | Abwesenheit von              | text       | Nein    | placeholder „Von“; Default `[date]`  |
+| 731 | `rnq9o` | Abwesenheit bis              | text       | Nein    | placeholder „Bis“; Default `[date]`  |
+| 681 | `7lh1p` | Bemerkungen / Anmerkungen    | textarea   | Nein    | placeholder „💡 Bemerkungen / Anmerkungen“; unbegrenzt  |
+| 661 | `ivkbj` | **End Divider**              | end_divider| Nein    | –                                               |
+
+### 5. Submission
+
+| ID  | Key      | Name               | Typ    | Pflicht | Aktion                                   |
+|-----|----------|--------------------|--------|---------|------------------------------------------|
+| 644 | `submit5`| 📤 E-Mails Senden  | submit | Nein    | löst WP-E-Mail-Hooks & Redirect aus      |
+| 750 | `xbkt0`  | User ID            | user_id| Nein    | Internes WP-User-Feld                    |
+
+---
+
+## Sichten (Views)
+
+| Titel                                    | Type   | Filter                                    | Layout (Boxes)                                 |
+|------------------------------------------|--------|-------------------------------------------|------------------------------------------------|
+| Klicktool: WFM: KRANKMELDUNG Table       | table  | keine / alle Einträge                     | Datum, Erstellt, Mitarbeiter, … Bemerkungen    |
+| … „Heute“                               | table  | `created_at >= today`                     | [Erstellt von, Vorname, Nachname …]            |
+| … „Woche“                               | table  | `created_at >= monday this week`          | [Erstellt von, …, Bis]                         |
+| … „Ganze Zeit“                          | table  | keine zeitliche Einschränkung             | [Erstellt von, …, Bemerkungen]                 | 
+
+---
+
+## Styling & Themes
+
+**Modern Dark** (Beispiel aus `frm_styles`):  
+- Theme: `Smoothness` (jQuery UI)  
+- Schrift: Orbitron, Rajdhani, Share Tech Mono, …  
+- Farben: Hintergrund `#1a1e27`, Text `#c1c1c1`, Akzent `#00c4b3`  
+- Inputs: abgerundete Ecken, Schatten, responsive Breite  
+- Progress Bar & Buttons: aktive Farben, Hover-Effekte 
+
+---
+
+## Verarbeitungshinweise
+
+- **Reihenfolge:** XML-Felder geordnet nach `<field_order>`.  
+- **Sichtbarkeits-Regeln:** via `hide_field` / `hide_opt` in `<field_options>`.  
+- **Pflichtfelder:** `<required>1</required>` → visuell `*`-Markierung.  
+- **Abschnitte:** `divider` / `end_divider` strukturieren das Formular.  
+- **Drafts:** Entwürfe speicherbar, nur berechtigte Rollen können editieren.  
+
+---
+
+## Datenexport & Mapping
+
+1. **JSON-Export**  
+   ```json
+   [
+     {
+       "id": 742,
+       "key": "nwksj",
+       "name": "Vorname des Mitarbeiters",
+       "type": "text",
+       "required": true,
+       "placeholder": "😀 Vorname"
+     },
+     …
+   ]
+   ```
+2. **Relationale Tabellen**  
+   - Tabelle `frm_fields` mit Spalten: `field_id`, `form_id`, `field_key`, `type`, `required`  
+   - Tabelle `frm_field_options` für komplexe Optionen & Validierungen  
+3. **API-Integration**  
+   - AJAX-Submit → Hook `frm_after_create_entry`  
+   - WP-E-Mail → Filter `frm_email_recipient`  
+
+---
+
+## Anhang: XML-Auszug
+
+```xml
+<form>
+  <id>30</id>
+  <form_key><![CDATA[ieq67]]></form_key>
+  <name><![CDATA[ 🟥 Abwesenheiten]]></name>
+  …
+  <options><![CDATA[{ "ajax_submit":"1", … }]]></options>
+  <field><id>647</id><type><![CDATA[name]]></type>…</field>
+  …
+</form>
 ```
 
-## 18. Kanban Board
-```markdown
-| To Do                          | In Progress               | Done                  |
-|--------------------------------|---------------------------|-----------------------|
-| Definirati polja (XML)         | Implementirati auto-email | Objaviti formu        |
-| Navesti requirement dijagram   | Kreirati ERD              | CRUD kontroler gotov  |
-| Nacrtati C4 kontejnere         | Dodati draft funkcionalnost | Test Ajax submit    |
-```
+> **Vollständiges XML** im Export-File   
 
-## 19. Architecture Diagram
-```mermaid
-flowchart LR
-    User -->|HTTPS| Nginx[Reverse Proxy]
-    Nginx --> PHPFPM[PHP-FPM]
-    PHPFPM --> WP[WordPress Core]
-    WP --> DB[(MySQL)]
-    WP --> Redis[(Cache)]
-    EmailService --> SMTP[(Mail Server)]
-```
+---
 
-## 20. Radar Chart
-```mermaid
-radarChart
-    title Pokrivenost funkcionalnosti
-    axisLabels Ajax, Validation, Draft, Email, Redirect, Security
-    "Features": [5,4,3,4,5,2]
+**Ende der Dokumentation**  
 ```
-
