@@ -1,168 +1,301 @@
-# 📋 Klicktool WFM – Abwesenheiten (Formular‑ID 30)
-🚀 Next‑Level Technische Dokumentation  
-Mit Flow‑Diagrammen für maximale Übersichtlichkeit
+# 🟥 Abwesenheiten – Dokumentacija u Markdown formatu
+
+**Tehničke specifikacije**  
+- **Form ID**: `30`  
+- **Form Key**: `ieq67`  
+- **Naziv forme**: `🟥 Abwesenheiten`  
+- **Kreirano**: `2025-03-05 08:38:20`  
+- **Opcije**: `ajax_load: 1`, `ajax_submit: 1`, `js_validate: 1`, `save_draft: 1`  
+- **Auto-Email logika**: Script u `after_html` ažurira E-Mail Feld-ID **730** po obrascu `<first>.<last>@globl.contact`  
 
 ---
 
-## 📖 Inhaltsverzeichnis
-1. [Architekturübersicht](#-architekturübersicht)
-2. [Allgemeine Kanal‑Metadaten](#-allgemeine‑kanal‑metadaten)
-3. [Formulareinstellungen (`<form>`)](#-formulareinstellungen-form)
-4. [Felder (`<field>`)](#-felder-field)
-5. [Ansichten & Aktionen (`<view>`)](#-ansichten--aktionen-view)
-6. [Flow‑Diagramme](#-flow-diagramme)
-   1. [Formular‑Lifecycle](#1-formular-lifecycle)
-   2. [E‑Mail‑Trigger‑Flow](#2-e‑mail-trigger-flow)
-7. [Beispiele](#-beispiele)
-8. [Zusammenfassung](#-zusammenfassung)
-
----
-
-## 🏛 Architekturübersicht
+## 1. Sequence Diagram
 ```mermaid
-flowchart TD
-  subgraph Client
-    U[👤 Benutzer] -->|öffnet Formular| F[📄 Formular‑ID 30]
-    F --> V{🛡️ Client‑Validierung}
-    V -->|✅ OK| S[💾 Speicherung]
-    V -->|❌ Fehler| E[⚠️ Fehlermeldung]
-  end
-
-  subgraph Server
-    S --> DB[(🔒 Datenbank)]
-    S --> A[🔧 Ansichten & Aktionen]
-    A --> V1[📋 Tabellen‑Views]
-    A --> Evt[📧 E‑Mail Aktionen]
-  end
+sequenceDiagram
+    participant U as Benutzer
+    participant F as Form(ID 30)
+    participant S as Server
+    U->>F: GET /wfm-abwesenheit
+    F-->>U: HTML + JS
+    U->>F: input Daten + Submit
+    F->>S: AJAX POST /submit
+    S-->>F: 200 OK
+    F-->>U: Redirect na Erfolgseite
 ```
 
----
+## 2. Class Diagram
+```mermaid
+classDiagram
+    class Form {
+        +int id
+        +string form_key
+        +string name
+        +map options
+    }
+    class Field {
+        +int id
+        +string field_key
+        +string name
+        +string type
+        +bool required
+    }
+    class EmailScript {
+        +int field_id
+        +string domain
+        +function updateEmail()
+    }
+    Form "1" --* "n" Field : sadrži
+    Form o-- EmailScript : koristi
+```
 
-## 🔍 Allgemeine Kanal‑Metadaten
-| 🔑 Schlüssel       | 📄 Wert                                      |
-|--------------------|----------------------------------------------|
-| **Titel**          | Globl Ambasador                              |
-| **Veröffentlicht** | 25. Apr 2025 00:47 UTC                       |
-| **Erstellt**       | 05. Mär 2025 08:38                           |
-| **Status**         | ✅ published                                 |
-| **Beschreibung**   | XML‑Schema für Abwesenheits‑Formular & Views |
+## 3. State Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Published : admin objavi
+    Published --> Submitted : korisnik pošalje
+    Submitted --> [*]
+    Draft --> Deleted : admin izbriše
+```
 
----
+## 4. Entity-Relationship Diagram (ERD)
+```mermaid
+erDiagram
+    FORM ||--o{ FIELD : contains
+    FIELD }|..|{ OPTION : has
+    ENTRY }o--|| FORM : belongs_to
+    ENTRY ||--o{ ENTRY_META : has
+```
 
-## 🛠 Formulareinstellungen (`<form>`)
-| 🔑 Attribut        | 📦 Typ / Werte                         | 📝 Beschreibung                          |
-|--------------------|----------------------------------------|------------------------------------------|
-| `id`               | Integer (z. B. 30)                     | Formular‑ID                              |
-| `form_key`         | String (CDATA)                         | Einmaliger interner Schlüssel            |
-| `name`             | String (CDATA)                         | „🟥 Abwesenheiten“                       |
-| `description`      | String (CDATA)                         | Freitext, leer                           |
-| `created_at`       | Timestamp                              | Erstellungszeitpunkt                     |
-| `logged_in`        | 0 / 1                                  | Öffentlich / Nur eingeloggte             |
-| `is_template`      | 0 / 1                                  | Kein Template / Template                 |
-| `editable`         | 0 / 1                                  | Nicht editierbar / Editierbar            |
-| `options`          | JSON‑Block                             | Ajax, Validierung, Rollen, Draft‑Speich. |
-| `status`           | `published` / `draft`                  | Publiziert oder Entwurf                  |
-| `parent_form_id`   | Integer                                | Übergeordnet (0 = keines)                |
+## 5. User Journey
+```mermaid
+userJourney
+    title Korisnik popunjava Abwesenheiten-formu
+    section Pristupanje
+      Otvoriti link: 5: U
+      Pregled forme: 4: U
+    section Popunjavanje
+      Unos imena: 4: U
+      Unos datuma: 3: U
+      Izbor razloga: 2: U
+    section Slanje
+      Klik Submit: 4: U
+      AJAX Submit: 3: S
+      Redirect: 2: U
+```
 
----
+## 6. Gantt Chart
+```mermaid
+gantt
+    title Životni ciklus forme
+    dateFormat  YYYY-MM-DD
+    section Razvoj
+    Definicija schema   :done,    des1, 2025-03-01, 2d
+    Implementacija JS   :active,  dev1, 2025-03-03, 4d
+    Testiranje funkcija :         test1, after dev1, 3d
+    section Puštanje
+    Objavljivanje        :crit,   pub1, after test1, 1d
+```
 
-## 📋 Felder (`<field>`)
-| 🆔 ID | 🔑 Key   | 🏷 Name                      | 📦 Typ      | ✅ Pflicht | 🎯 Default        | 📖 Beschreibung                                   |
-|-------|----------|-----------------------------|-------------|------------|-------------------|---------------------------------------------------|
-| 647   | `9nx4z`  | Erstellt von                | `name`      | Ja         | `{"first":"…"}`| 👤 Autovervollst. Vorname + Nachname              |
-| 645   | `p0jmn`  | Datum der Erfassung         | `date`      | Ja         | `[date]`          | 📅 Heutiges Datum (YYYY‑MM‑DD)                    |
-| 744   | `tzjug`  | Zeit der Erfassung          | `time`      | Nein       | `[time]`          | ⏰ Aktuelle Uhrzeit (HH:MM, 24 h)                 |
-| 652   | `flpyx`  | **Mitarbeiterdaten**        | `divider`   | –          | –                 | Trennt Abschnitt                                  |
-| 742   | `nwksj`  | Vorname des Mitarbeiters    | `text`      | Ja         | –                 | ✍️ Platzhalter „👤 Vorname“                        |
-| 743   | `e40ji`  | Nachname des Mitarbeiters   | `text`      | Ja         | –                 | ✍️ Platzhalter „👤 Nachname“                       |
-| 740   | `jauwk`  | E‑Mail des Mitarbeiters     | `text`      | Ja         | –                 | 📧 Vorname.Nachname@globl.contact                 |
-| 666   | `r5loi`  | Pers.-Nr.                   | `text`      | Ja         | –                 | 🔢 Personalnummer                                |
-| 726   | `nw3pz`  | Projekt wählen              | `select`    | Ja         | –                 | ▶️ About You, Canyon, DG, Telekom, STRATO, …      |
-| 667   | `itztd`  | Abteilung                   | `text`      | Nein       | –                 | 🏢 Freitext                                       |
-| 727   | `zl2m7`  | Abwesenheitsgrund           | `select`    | Ja         | –                 | 🚫 Unentschuldigt, 🤒 Krankmeldung, 🌴 Urlaub, …  |
-| 739   | `891k2`  | Untertägig                  | `checkbox`  | Nein       | –                 | Nur bei Krankmeldung anzeigen                   |
-| 745   | `spbw4`  | Ausfall von                 | `time`      | Nein       | –                 | Startzeit HH:MM                                  |
-| 746   | `1bpfo`  | Ausfall bis                 | `time`      | Nein       | –                 | Endzeit HH:MM                                    |
-| 681   | `7lh1p`  | Bemerkungen / Anmerkungen   | `textarea`  | Nein       | –                 | 📝 Freitext                                       |
-| 644   | `submit5`| 📤 E‑Mails Senden            | `submit`    | Nein       | –                 | Löst E‑Mail‑Aktionen aus                         |
-| 750   | `xbkt0`  | User ID                     | `user_id`   | Nein       | –                 | Internes Nutzer‑ID                               |
+## 7. Pie Chart
+```mermaid
+pie title Raspodjela tipova polja
+    "Text": 5
+    "Select": 2
+    "Date/Time": 3
+    "Divider": 2
+    "Submit": 1
+    "User_ID": 1
+```
 
----
+## 8. Quadrant Chart
+```mermaid
+quadrantChart
+    title Polja po važnosti i složenosti
+    x-axis Visoka složenost --> Niska složenost
+    y-axis Kritično --> Opcionalno
+    "Erstellt von": [8,8]
+    "E-Mail des Mitarbeiters": [9,7]
+    "Abwesenheitsgrund": [7,9]
+    "Bemerkungen": [3,4]
+```
 
-## 👁️ Ansichten & Aktionen (`<view>`)
-- **Tabellen‑Views** (`frm_display`): Tages‑, Wochen‑, Gesamt‑Ansicht  
-- **E‑Mail‑Aktionen** (`frm_form_actions`):  
-  - 📧 Trigger: `event: ["create"]`  
-  - 📨 Empfänger je Projekt  
-  - ⚙️ Bedingungen via `conditions`
+## 9. Requirement Diagram
+```mermaid
+requirementDiagram
+    requirement FORM_REQ {
+        id: R1
+        text: "Ajax submit must work"
+    }
+    requirement EMAIL_AUTO {
+        id: R2
+        text: "Email auto-generation on input"
+    }
+    FORM_REQ --> EMAIL_AUTO
+```
 
----
+## 10. Gitgraph (Commit grananje)
+```mermaid
+gitGraph
+    commit id:"init XML" tag:"v1.0"
+    branch develop
+    commit id:"add auto-email script"
+    commit id:"add date/time fields"
+    fork feature/user-journey
+      commit id:"draft user journey"
+    checkout develop
+    merge feature/user-journey
+    commit id:"final diagrams"
+```
 
-## 🌊 Flow‑Diagramme
+## 11. C4 Model
+### Context
+```mermaid
+C4Context
+    title C4 Context
+    Person(user, "Korisnik")
+    System(webApp, "Klicktool WFM")
+    user -> webApp : "Popunjava formu"
+```
+### Container
+```mermaid
+C4Container
+    title C4 Container
+    System_Boundary(s1, "WFM System") {
+      Container(web, "Web Frontend", "React + Ajax")
+      Container(api, "API Server", "PHP/WordPress")
+      ContainerDb(db, "MySQL DB", "Form data")
+    }
+    web -> api : REST/JSON
+    api -> db : Read/Write
+```
+### Component
+```mermaid
+C4Component
+    title C4 Component
+    Container(api, "API Server") {
+      Component(FormController, "FormController", "CRUD forme")
+      Component(EmailService, "EmailService", "Auto-email logic")
+    }
+    FormController -> EmailService : uses
+```
+### Code
+```mermaid
+C4Code
+    title C4 Code Snippet
+    snippet “email.js” {
+      function updateEmail(first, last) {
+        return `${first}.${last}@globl.contact`;
+      }
+    }
+```
 
-### 1. Formular-Lifecycle
+## 12. Mindmap
+```mermaid
+mindmap
+  root((🟥 Abwesenheiten))
+    Specifikacije
+      IDs
+      Form Key
+      Opcije
+    Polja
+      Erstellt von
+      Datum
+      Email
+      …
+    Logika
+      Ajax Submit
+      Auto-Email
+    Integracije
+      DB
+      Redirect
+```
+
+## 13. Timeline
+```mermaid
+timeline
+    title Ključni događaji
+    2025-03-05 : Forma kreirana
+    2025-03-06 : Prvi unosi
+    2025-03-07 : Objavljen WFM view
+    2025-04-09 : Privatni prikaz “Heute”
+    2025-04-23 : Nove tabele za “Woche” i “Ganze Zeit”
+```
+
+## 14. Sankey Diagram
+```mermaid
+sankeyDiagram
+    A[User Input] 0.8 --> B[AJAX Submit]
+    B 0.8 --> C[Server Validation]
+    C 0.7 --> D[DB Write]
+    D 0.7 --> E[Success Redirect]
+    A[User Input] 0.2 --> F[Draft Save]
+    F --> G[Draft Storage]
+```
+
+## 15. XY (Scatter/Line) Chart
+```mermaid
+scatterChart
+    title Field order vs Required
+    x-axis Redoslijed polja
+    y-axis Obavezno (1) / Neobavezno (0)
+    "Erstellt von": [2,1]
+    "Bemerkovanja": [32,0]
+    "Abwesenheitsgrund": [18,1]
+```
+
+## 16. Block Diagram
+```mermaid
+flowchart TB
+    subgraph Frontend
+      UI[HTML+JS]
+    end
+    subgraph Backend
+      API[PHP/WordPress API]
+      Logic[Email & Validation]
+    end
+    DB[(MySQL)]
+    UI --> API
+    API --> Logic
+    Logic --> DB
+    Logic --> UI
+```
+
+## 17. Packet Diagram
 ```mermaid
 flowchart LR
-  U[👤 Benutzer] -->|öffnet Formular| F[📄 Formular 30]
-  F --> V{🛡️ JS‑Validierung}
-  V -->|✅ OK| S[💾 Speichern]
-  V -->|❌ Fehler| E[⚠️ Fehlermeldung]
-  S --> DB[(🔒 DB)]
-  S --> V1[📋 Views generieren]
-  S --> Evt[📧 E‑Mail Aktionen]
+    Client -- "TCP Handshake" --> Server
+    Server -- "TLS Handshake" --> Client
+    Client -- "POST /submit HTTP/1.1" --> Server
+    Server -- "200 OK" --> Client
 ```
 
-### 2. E‑Mail‑Trigger‑Flow
+## 18. Kanban Board
+```markdown
+| To Do                          | In Progress               | Done                  |
+|--------------------------------|---------------------------|-----------------------|
+| Definirati polja (XML)         | Implementirati auto-email | Objaviti formu        |
+| Navesti requirement dijagram   | Kreirati ERD              | CRUD kontroler gotov  |
+| Nacrtati C4 kontejnere         | Dodati draft funkcionalnost | Test Ajax submit    |
+```
+
+## 19. Architecture Diagram
 ```mermaid
-flowchart TD
-  S[Eintrag erstellt] --> C{Projekt?}
-  C -->|Telefonica| E1[E‑Mail an telefonica-tl@…]
-  C -->|STRATO|   E2[E‑Mail an strato-tl@…]
-  C -->|DG|       E3[E‑Mail an dg-tl@…]
-  C -->|…|        E4[E‑Mail an …]
-  E1 --> R[✅ Erfolgsseite]
-  E2 --> R
-  E3 --> R
-  E4 --> R
+flowchart LR
+    User -->|HTTPS| Nginx[Reverse Proxy]
+    Nginx --> PHPFPM[PHP-FPM]
+    PHPFPM --> WP[WordPress Core]
+    WP --> DB[(MySQL)]
+    WP --> Redis[(Cache)]
+    EmailService --> SMTP[(Mail Server)]
 ```
 
----
-
-## 🛠 Beispiele
-**Formular‑Snip­pet**
-```xml
-<form>
-  <id>30</id>
-  <name><![CDATA[ 🟥 Abwesenheiten ]]></name>
-  <created_at>2025-03-05 08:38:20</created_at>
-  <editable>1</editable>
-  <status><![CDATA[ published ]]></status>
-</form>
+## 20. Radar Chart
+```mermaid
+radarChart
+    title Pokrivenost funkcionalnosti
+    axisLabels Ajax, Validation, Draft, Email, Redirect, Security
+    "Features": [5,4,3,4,5,2]
 ```
-
-**Feld‑Snippet: Abwesenheitsgrund**
-```xml
-<field>
-  <id>727</id>
-  <name><![CDATA[ Abwesenheitsgrund ]]></name>
-  <type><![CDATA[ select ]]></type>
-  <options><![CDATA[
-    [
-      {"label":"🚫 Unentschuldigt","value":"unentschuldigt"},
-      {"label":"🤒 Krankmeldung","value":"krankmeldung"},
-      …
-    ]
-  ]]></options>
-</field>
-```
-
----
-
-## ✅ Zusammenfassung
-- 🌟 **Next‑Level:** Übersichtliche Flow-Diagramme  
-- 🔍 **Detailtiefe:** Alle Felder, Optionen, Views & Aktionen dokumentiert  
-- 🔧 **Modular:** Klare Trennung von Formular-Settings, Feld-Definitionen & Views  
-- 📈 **Skalierbar:** Einfach erweiterbar durch JSON‑Optionen
-
-> Dieses README.md bietet Entwicklern & Administratoren einen umfassenden, visuellen & modularen Leitfaden für das Abwesenheits-Formular im Klicktool.
 
